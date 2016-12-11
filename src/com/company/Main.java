@@ -35,16 +35,15 @@ public class Main {
         //showStats();
 
         // 많이 쓰는 스킬 내림차순
-        Iterator it = sortByValue(skillMap).iterator();
-        while(it.hasNext()){
-            String temp = (String) it.next();
+        for (Object o : sortByValue(skillMap)) {
+            String temp = (String) o;
             System.out.println(temp + " = " + skillMap.get(temp));
         }
 
         System.out.println("스킬 종류 : " + skillMap.size());
     }
 
-    public static Document openUrl(String urlStr){
+    private static Document openUrl(String urlStr){
         URL url;
         Document doc = null;
         try {
@@ -104,12 +103,12 @@ public class Main {
     }
 
     public static List sortByValue(final Map map){
-        List<String> list = new ArrayList();
+        ArrayList list = new ArrayList();
         list.addAll(map.keySet());
 
-        Collections.sort(list,new Comparator(){
+        list.sort(new Comparator() {
 
-            public int compare(Object o1,Object o2){
+            public int compare(Object o1, Object o2) {
                 Object v1 = map.get(o1);
                 Object v2 = map.get(o2);
 
