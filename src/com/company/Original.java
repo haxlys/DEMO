@@ -4,49 +4,35 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.junit.Test;
 
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.SQLException;
 import java.util.*;
 
-public class Main implements Runnable {
+public class Original {
 
     private static final String URL = "https://www.rocketpunch.com/jobs?job=%EA%B0%9C%EB%B0%9C%EC%9E%90&page=";
     private static Map<String, Integer> skillMap = new TreeMap<>();
-    private int seq = 0;
-
-    public Main(int seq){
-        this.seq = seq;
-    }
-
-    public Main(){}
 
     public static void execute() throws Exception {
         int totalPage = getTotalPage(openUrl(URL+1));
 
-        ArrayList<Thread> threads = new ArrayList<>();
-        for(int i=0; i<totalPage; i++) {
-            Thread t = new Thread(new Main(i));
-            t.start();
-            threads.add(t);
-        }
-
-        for(int i=0; i<threads.size(); i++) {
-            Thread t = threads.get(i);
-            try {
-                t.join();
-            }catch(Exception e) {
-            }
+        // 페이지 갯수 만큼 스킬 파싱
+        for(int i=1; i<=totalPage; i++){
+            System.out.println(i + " 페이지 파싱 중...");
+            skillParsing(openUrl(URL+i));
         }
 
         // 스킬 이름 오름차순
-        //showStats();
+        showStats();
 
         // 많이 쓰는 스킬 내림차순
-        for (Object o : sortByValue(skillMap)) {
+        /*for (Object o : sortByValue(skillMap)) {
             String temp = (String) o;
             System.out.println(temp + " = " + skillMap.get(temp));
-        }
+        }*/
 
         System.out.println("스킬 종류 : " + skillMap.size());
     }
@@ -99,13 +85,18 @@ public class Main implements Runnable {
                 skillMap.put(elem.text(),skillMap.get(elem.text())+1);
             }
         }
-
-
     }
 
-    public static void showStats(){
+    public static void showStats() throws SQLException, ClassNotFoundException {
+        DBConnection con = new DBConnection();
+        Domain vo = null;
         for (String key : skillMap.keySet()){
             int value = skillMap.get(key);
+            vo = new Domain();
+            vo.setId(con.getMaxId());
+            vo.setSkillCount(value);
+            vo.setSkillName(key);
+            con.add(vo);
             System.out.println(key + " : " + value);
         }
     }
@@ -126,17 +117,5 @@ public class Main implements Runnable {
         });
         Collections.reverse(list); // 주석시 오름차순
         return list;
-    }
-
-    @Override
-    public void run() {
-        System.out.println(this.seq+" 페이지 파싱 중...");
-        try {
-            skillParsing(openUrl(URL+seq));
-        }catch(Exception e) {
-            e.printStackTrace();
-            System.out.println("쓰레드 도중 에러");
-        }
-        System.out.println(this.seq+" 페이지 파싱 끝...");
     }
 }
