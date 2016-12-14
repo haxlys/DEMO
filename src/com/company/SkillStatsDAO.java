@@ -1,20 +1,24 @@
 package com.company;
 
-import org.junit.*;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DBConnection {
+/**
+ * Created by mac on 2016. 12. 14..
+ */
+public class SkillStatsDAO {
+
+    private ConnectionMaker connectionMaker;
+
+
+    public SkillStatsDAO(ConnectionMaker connectionMaker){
+        this.connectionMaker = connectionMaker;
+    }
 
     public void add(Domain vo) throws ClassNotFoundException {
-        Class.forName("com.mysql.jdbc.Driver");
         try {
-            Connection con = null;
-
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dev_stats?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC",
-                    "root", "root");
+            Connection con = connectionMaker.localConnection();
 
             PreparedStatement ps = con.prepareStatement(
                     "insert into rocket_punch(id, skill_name, skill_count, regist_date) values(?,?,?,now())");
@@ -34,10 +38,7 @@ public class DBConnection {
     }
 
     public List<Domain> get(int id) throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.jdbc.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dev_stats?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC",
-                "root", "root");
+        Connection con = connectionMaker.localConnection();
 
         PreparedStatement ps = con.prepareStatement(
                 "select * from users where id = ?");
@@ -63,10 +64,7 @@ public class DBConnection {
     }
 
     public int getMaxId() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.jdbc.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dev_stats?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC",
-                "root", "root");
+        Connection con = connectionMaker.localConnection();
 
         PreparedStatement ps = con.prepareStatement("select max(ifnull(id,0))+1 AS id from rocket_punch");
 
@@ -84,10 +82,7 @@ public class DBConnection {
     }
 
     public void delete(int id) throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.jdbc.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dev_stats?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC",
-                "root", "root");
+        Connection con = connectionMaker.localConnection();
 
         PreparedStatement ps = con.prepareStatement("delete from rocket_punch where id = ?");
         ps.setInt(1, id);

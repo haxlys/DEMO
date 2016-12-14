@@ -4,7 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.junit.Test;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -15,6 +14,9 @@ public class Original {
 
     private static final String URL = "https://www.rocketpunch.com/jobs?job=%EA%B0%9C%EB%B0%9C%EC%9E%90&page=";
     private static Map<String, Integer> skillMap = new TreeMap<>();
+    private static final String ORDER = "DESC";
+
+    public String order;
 
     public static void execute() throws Exception {
         int totalPage = getTotalPage(openUrl(URL+1));
@@ -26,7 +28,7 @@ public class Original {
         }
 
         // 스킬 이름 오름차순
-        showStats();
+        addStats();
 
         // 많이 쓰는 스킬 내림차순
         /*for (Object o : sortByValue(skillMap)) {
@@ -87,21 +89,21 @@ public class Original {
         }
     }
 
-    public static void showStats() throws SQLException, ClassNotFoundException {
-        DBConnection con = new DBConnection();
+    public static void addStats() throws SQLException, ClassNotFoundException {
+        SkillStatsDAO dao = new SkillStatsDAO(new LocalConnectionMaker());
         Domain vo = null;
         for (String key : skillMap.keySet()){
             int value = skillMap.get(key);
             vo = new Domain();
-            vo.setId(con.getMaxId());
+            vo.setId(dao.getMaxId());
             vo.setSkillCount(value);
             vo.setSkillName(key);
-            con.add(vo);
-            System.out.println(key + " : " + value);
+            dao.add(vo);
+            //System.out.println(key + " : " + value);
         }
     }
 
-    public static List sortByValue(final Map map){
+    public List sortByValue(final Map map){
         ArrayList list = new ArrayList();
         list.addAll(map.keySet());
 
@@ -115,7 +117,18 @@ public class Original {
             }
 
         });
-        Collections.reverse(list); // 주석시 오름차순
+
+        if(ORDER.equals(order)){
+            Collections.reverse(list); // 내림차순
+        }
+
         return list;
+    }
+
+    public void orderCount(){
+        for (Object o : sortByValue(skillMap)) {
+            String temp = (String) o;
+            //System.out.println(temp + " = " + skillMap.get(temp));
+        }
     }
 }
