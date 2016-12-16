@@ -9,7 +9,10 @@ public class Test {
     public void Test() throws Exception {
         long start = System.currentTimeMillis();
         //Main.execute(); // 서버가 요청을 받아주지 못하고 503에러 뱉음
-        Original.execute();
+        String targetUrl = "https://www.rocketpunch.com/jobs?job=%EA%B0%9C%EB%B0%9C%EC%9E%90";
+        String baseUrl = "https://www.rocketpunch.com";
+        String pageParamName = "page";
+        new URLConnection(targetUrl, baseUrl, pageParamName).execute();
         /*DBConnection c = new DBConnection();
         Domain d = new Domain();
         d.setId(2);
