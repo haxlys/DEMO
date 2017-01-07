@@ -19,7 +19,6 @@ public class URLConnection {
     private String baseUrl = "";
     private String pageParamName = "";
     private String urlWithPage = "";
-    private Map<String, Integer> parsingMap;
 
     public URLConnection(String url, String baseUrl, String pageParamName){
         this(url, "utf-8", baseUrl, pageParamName);
@@ -37,18 +36,16 @@ public class URLConnection {
         // 파싱할 페이지 갯수 얻기
         Document doc = openUrl(url);
         Elements el = doc.select("nav.pagination.wrap ul li").last().select("a"); // 마지막 페이지로 가는 버튼을 이용해 가져옴
-        int totalPage = getTotalPageAtHref(el, pageParamName);
+        //int totalPage = getTotalPageAtHref(el, pageParamName);
 
         // 총 페이지 기반으로 정보 파싱
         String parsingTag = ".list.list-unstyled.tags li a"; // 기술 text 구분할 수 있는 셀렉터
 
         // 기술 이름 파싱 후 저장(스킬 이름 오름차순)
-        addStats(parsingText(parsingTag, totalPage));
+        addStats(parsingText(parsingTag, 1));
 
         // 많이 쓰는 스킬 내림차순
         //sortByValue();
-
-        log.info("스킬 개수 : " + this.parsingMap.size());
     }
 
     private Document openUrl(String url){
@@ -117,6 +114,8 @@ public class URLConnection {
             }
         }
 
+        log.info("스킬 개수 : " + map.size());
+
         return map;
     }
 
@@ -140,7 +139,7 @@ public class URLConnection {
 
 
 
-    public List sortByValue(final Map map){
+    public List sortByValue(final Map<String,Integer> map){
         ArrayList list = new ArrayList();
         list.addAll(map.keySet());
 
@@ -155,12 +154,5 @@ public class URLConnection {
         Collections.reverse(list); // 내림차순
 
         return list;
-    }
-
-    public void sortByValue(){
-        for (Object o : sortByValue(this.parsingMap)) {
-            String temp = (String) o;
-            System.out.println(temp + " = " + this.parsingMap.get(temp));
-        }
     }
 }
