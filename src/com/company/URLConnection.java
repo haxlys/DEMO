@@ -1,5 +1,6 @@
 package com.company;
 
+import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -11,7 +12,8 @@ import java.util.*;
 
 public class URLConnection {
 
-    // private static final String URL = "https://www.rocketpunch.com/jobs?job=%EA%B0%9C%EB%B0%9C%EC%9E%90";
+    private Logger log = Logger.getLogger(this.getClass());
+
     private String url = "";
     private String charset = "";
     private String baseUrl = "";
@@ -29,6 +31,24 @@ public class URLConnection {
         this.baseUrl = baseUrl;
         this.pageParamName = pageParamName;
         this.urlWithPage = url + "&" + pageParamName + "=";
+    }
+
+    public void execute() throws Exception {
+        // 파싱할 페이지 갯수 얻기
+        Document doc = openUrl(url);
+        Elements el = doc.select("nav.pagination.wrap ul li").last().select("a"); // 마지막 페이지로 가는 버튼을 이용해 가져옴
+        int totalPage = getTotalPageAtHref(el, pageParamName);
+
+        // 총 페이지 기반으로 정보 파싱
+        String parsingTag = ".list.list-unstyled.tags li a"; // 기술 text 구분할 수 있는 셀렉터
+
+        // 기술 이름 파싱 후 저장(스킬 이름 오름차순)
+        addStats(parsingText(parsingTag, totalPage));
+
+        // 많이 쓰는 스킬 내림차순
+        //sortByValue();
+
+        log.info("스킬 개수 : " + this.parsingMap.size());
     }
 
     private Document openUrl(String url){
@@ -54,11 +74,10 @@ public class URLConnection {
      * @throws Exception
      */
     public int getTotalPageAtHref(Elements el, String pagePramName) throws Exception {
-        //String node = doc.select("nav.pagination.wrap ul li").last().select("a").attr("href");
         String node = el.attr("href");
 
         if("".equals(node.trim())){
-            System.out.println("getTotalPage 정보를 가져오지 못했습니다");
+            log.warn("getTotalPage 정보를 가져오지 못했습니다");
             throw new Exception();
         }
 
@@ -72,41 +91,57 @@ public class URLConnection {
             e.printStackTrace();
         }
 
-        System.out.println("총 페이지 : " + totalPage);
+        log.info("총 페이지 : " + totalPage);
         return totalPage;
     }
 
     /**
-     * 파싱할 정보가 text일 경우 사용한다
-     * @param parsingTag : 페이지의 파싱할 text를 가진 태그
-     * @param count : 페이지 총 개수
+     * text 정보를 수집한다
+     * @param parsingTag text정보를 가지고 있는 셀럭터 태그 값
+     * @param count 페이지 횟수
+     * @return 파싱된 map
      */
-    public void parsingText(String parsingTag, int count){
-        this.parsingMap = new TreeMap<>();
+    public Map<String, Integer> parsingText(String parsingTag, int count){
+        Map<String, Integer> map = new TreeMap<>();
 
         // 페이지 갯수 만큼 스킬 파싱
         for(int i=1; i<=count; i++){
-            System.out.println(i + " 페이지 파싱 중...");
-            setParsingMap(openUrl(urlWithPage+i).select(parsingTag));
-        }
-    }
+            log.info(i + " 페이지 파싱 중...");
 
-    public void parsingText(String parsingTag){
-        parsingText(parsingTag, 1);
-    }
-
-    public void setParsingMap(Elements el){
-        for( Element elem : el ){
-            if(this.parsingMap.get(elem.text()) == null){
-                this.parsingMap.put(elem.text(),1);
-            } else {
-                this.parsingMap.put(elem.text(),this.parsingMap.get(elem.text())+1);
+            for( Element elem : openUrl(urlWithPage+i).select(parsingTag) ){
+                if(map.get(elem.text()) == null){
+                    map.put(elem.text(),1);
+                } else {
+                    map.put(elem.text(),map.get(elem.text())+1);
+                }
             }
         }
+
+        return map;
     }
 
+    public void addStats(Map<String, Integer> map) throws SQLException, ClassNotFoundException {
+        SkillStatsDAO dao = new Factory().skillStatsDAO();
+
+        for (String key : map.keySet()){
+            int value = map.get(key);
+            Domain vo = new Domain();
+            vo.setId(dao.getMaxId());
+            vo.setSkillCount(value);
+            vo.setSkillName(key);
+            //dao.add(vo);
+            log.info(key + " : " + value);
+        }
+    }
+
+
+
+
+
+
+
     public List sortByValue(final Map map){
-    ArrayList list = new ArrayList();
+        ArrayList list = new ArrayList();
         list.addAll(map.keySet());
 
         list.sort(new Comparator() {
@@ -127,38 +162,5 @@ public class URLConnection {
             String temp = (String) o;
             System.out.println(temp + " = " + this.parsingMap.get(temp));
         }
-    }
-
-    public void addStats() throws SQLException, ClassNotFoundException {
-        SkillStatsDAO dao = new Factory().skillStatsDAO();
-
-        for (String key : this.parsingMap.keySet()){
-            int value = this.parsingMap.get(key);
-            Domain vo = new Domain();
-            vo.setId(dao.getMaxId());
-            vo.setSkillCount(value);
-            vo.setSkillName(key);
-            dao.add(vo);
-            System.out.println(key + " : " + value);
-        }
-    }
-
-    public void execute() throws Exception {
-        // 파싱할 페이지 갯수 얻기
-        Document doc = openUrl(url);
-        Elements el = doc.select("nav.pagination.wrap ul li").last().select("a");
-        int totalPage = getTotalPageAtHref(el, pageParamName);
-
-        // 페이지 갯수 만큼 정보 파싱
-        String parsingTag = ".list.list-unstyled.tags li a"; // 가져올 정보를 가진 태그
-        parsingText(parsingTag, totalPage);
-
-        // 스킬 이름 오름차순
-        addStats();
-
-        // 많이 쓰는 스킬 내림차순
-        //sortByValue();
-
-        System.out.println("스킬 개수 : " + this.parsingMap.size());
     }
 }

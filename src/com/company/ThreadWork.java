@@ -9,24 +9,24 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 
-public class Main implements Runnable {
+public class ThreadWork implements Runnable {
 
     private static final String URL = "https://www.rocketpunch.com/jobs?job=%EA%B0%9C%EB%B0%9C%EC%9E%90&page=";
     private static Map<String, Integer> skillMap = new TreeMap<>();
     private int seq = 0;
 
-    public Main(int seq){
+    public ThreadWork(int seq){
         this.seq = seq;
     }
 
-    public Main(){}
+    public ThreadWork(){}
 
     public static void execute() throws Exception {
         int totalPage = getTotalPage(openUrl(URL+1));
 
         ArrayList<Thread> threads = new ArrayList<>();
         for(int i=0; i<totalPage; i++) {
-            Thread t = new Thread(new Main(i));
+            Thread t = new Thread(new ThreadWork(i));
             t.start();
             threads.add(t);
         }
