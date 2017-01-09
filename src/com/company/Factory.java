@@ -10,7 +10,7 @@ public class Factory {
     }
 
     public ConnectionMaker connectionMaker(){
-        return new DBConnection();
-        //return new RDSConnection();
+        //return new DBConnection();
+        return new RDSConnection();
     }
 }

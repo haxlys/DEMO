@@ -18,10 +18,10 @@
             <param name="ConversionPattern" value="[%d]%5p [%t] (%F:%L) - %m%n" />
         </layout>
     </appender>
-    <!--
-    <logger name="org.apache.catalina">
+
+    <logger name="*">
         <level value="WARN" />
-    </logger>-->
+    </logger>
     <root>
         <priority value="LOG" />
         <appender-ref ref="console" />

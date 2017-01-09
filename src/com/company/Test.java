@@ -2,15 +2,22 @@ package com.company;
 
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.sql.SQLException;
 
 public class Test {
 
     public static void main(String[] args) throws Exception {
         Logger logger = Logger.getRootLogger();
         try{
-            System.setErr(new PrintStream(new FileOutputStream(System.getProperty("user.home")+"/LOG/rocketpunch/error.log")));
+            String dir = "/LOG/rocketpunch";
+            File desti = new File(System.getProperty("user.home") + dir);
+            if(!desti.exists()){
+                desti.mkdirs();
+            }
+            System.setErr(new PrintStream(new FileOutputStream(System.getProperty("user.home")+dir+"/error.log")));
 
             long start = System.currentTimeMillis();
 
@@ -23,7 +30,15 @@ public class Test {
 
             logger.info( "실행 시간 : " + ( System.currentTimeMillis() - start )/1000.0 );
         }catch (Exception e){
+
             e.printStackTrace();
         }
+    }
+
+    @org.junit.Test
+    public void deleteAll() throws SQLException, ClassNotFoundException {
+        SkillStatsDAO dao = new Factory().skillStatsDAO();
+
+        dao.deleteAll();
     }
 }
